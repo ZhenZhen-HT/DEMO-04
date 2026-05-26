@@ -97,7 +97,7 @@ def display_csv_or_text(content):
             rows = list(reader)
             
             if rows:
-                display_csv_table(rows)
+                display_csv_table(rows, display_limit=5)
             else:
                 print("❌ CSV 文件为空")
         except:
@@ -110,7 +110,7 @@ def display_csv_or_text(content):
         print("❌ 无法解码为文本，显示前 500 字节的原始数据:")
         print(content[:500])
 
-def display_csv_table(rows):
+def display_csv_table(rows, display_limit=5):
     """
     以易读的格式显示 CSV 数据（根据字段类型自动调整显示方式）
     """
@@ -120,21 +120,21 @@ def display_csv_table(rows):
     headers = rows[0]
     print(f"✓ CSV 文件信息")
     print(f"  列数: {len(headers)}")
-    print(f"  数据行数: {len(rows) - 1}\n")
+    print(f"  数据筆数: {len(rows) - 1}\n")
     
     # 显示表头列表
     print(f"表头列表:")
     for i, header in enumerate(headers, 1):
         print(f"  [{i:2d}] {header}")
     
-    print(f"\n前 5 行数据详情:")
+    print(f"\n前 {display_limit} 筆数据详情:")
     print("=" * 120)
     
     # 识别长文本字段
     long_text_fields = {'description', 'link', 'title'}
     
-    # 显示前 5 行数据
-    max_rows_to_show = min(5, len(rows) - 1)
+    # 显示部分数据
+    max_rows_to_show = min(display_limit, len(rows) - 1)
     for row_idx, row in enumerate(rows[1:max_rows_to_show+1], 1):
         print(f"\n【记录 {row_idx}】")
         print("-" * 120)
@@ -150,9 +150,9 @@ def display_csv_table(rows):
                 print(f"  {header:12s}: {value}")
         print()
     
-    if len(rows) > 6:
-        remaining = len(rows) - 6
-        print(f"\n... (还有 {remaining} 行数据未显示)")
+    if len(rows) > display_limit + 1:
+        remaining = len(rows) - 1 - display_limit
+        print(f"\n... (还有 {remaining} 筆数据未显示)")
     
     print("\n" + "=" * 120)
 
