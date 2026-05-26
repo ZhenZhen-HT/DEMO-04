@@ -4,6 +4,10 @@ import io
 import zipfile
 import csv
 from io import TextIOWrapper
+import warnings
+
+# 禁用 SSL 验证警告
+warnings.filterwarnings('ignore', message='Unverified HTTPS request')
 
 def fetch_and_display_data(url):
     """
@@ -16,7 +20,7 @@ def fetch_and_display_data(url):
         print(f"URL: {url}\n")
         
         # 发送 GET 请求
-        response = requests.get(url, timeout=10)
+        response = requests.get(url, timeout=10, verify=False)
         response.raise_for_status()  # 如果有错误则抛出异常
         
         print(f"✓ 下载成功")
@@ -108,7 +112,7 @@ def display_csv_or_text(content):
 
 def display_csv_table(rows):
     """
-    以易读的格式显示 CSV 数据（每个字段独立一行）
+    以易读的格式显示 CSV 数据（根据字段类型自动调整显示方式）
     """
     if not rows:
         return
@@ -124,21 +128,34 @@ def display_csv_table(rows):
         print(f"  [{i:2d}] {header}")
     
     print(f"\n前 5 行数据详情:")
-    print("=" * 100)
+    print("=" * 120)
     
-    # 显示前 5 行数据（每个字段独立一行）
+    # 识别长文本字段
+    long_text_fields = {'description', 'link', 'title'}
+    
+    # 显示前 5 行数据
     max_rows_to_show = min(5, len(rows) - 1)
     for row_idx, row in enumerate(rows[1:max_rows_to_show+1], 1):
         print(f"\n【记录 {row_idx}】")
+        print("-" * 120)
+        
         for header, value in zip(headers, row):
-            print(f"{header}: {value}")
+            # 为长文本字段特殊处理
+            if header.lower() in long_text_fields:
+                # 长文本字段显示截断版本
+                display_value = value[:80] + "..." if len(value) > 80 else value
+                print(f"  {header:12s}: {display_value}")
+            else:
+                # 短文本字段正常显示
+                print(f"  {header:12s}: {value}")
+        print()
     
     if len(rows) > 6:
         remaining = len(rows) - 6
         print(f"\n... (还有 {remaining} 行数据未显示)")
     
-    print("\n" + "=" * 100)
+    print("\n" + "=" * 120)
 
 if __name__ == "__main__":
-    url = "https://data.kcg.gov.tw/File/DirectDownload/80bbbbd3-9ee4-4244-98e9-b4c08deda91b"
+    url = "https://data.ntpc.gov.tw/api/datasets/781b822e-214a-4b9a-b4db-32c9f4626d98/csv/file"
     fetch_and_display_data(url)
